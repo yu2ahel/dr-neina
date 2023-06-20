@@ -34,4 +34,12 @@ RUN composer dump-autoload --optimize
 COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # Enable PHP error logging
-RUN echo "log_errors = On" >> /usr/local/etc/php/conf.d
+RUN mkdir -p /usr/local/etc/php/conf.d \
+    && echo "log_errors = On" >> /usr/local/etc/php/conf.d/docker-php-error-log.ini \
+    && echo "error_log = /dev/stderr" >> /usr/local/etc/php/conf.d/docker-php-error-log.ini
+
+# Expose port 80
+EXPOSE 80
+
+# Start the Apache server
+CMD ["apache2-foreground"]
