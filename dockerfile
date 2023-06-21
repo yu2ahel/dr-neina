@@ -42,7 +42,7 @@ RUN mkdir -p /usr/local/etc/php/conf.d \
 
 
 # Install Node.js and npm
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
 
 # Install frontend dependencies using npm
