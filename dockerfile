@@ -45,7 +45,7 @@ COPY package*.json ./
 RUN npm install
 
 # Generate the optimized frontend assets
-RUN npm run production
+RUN npm run build
 
 # Copy the Laravel application from the builder stage
 COPY --from=builder /app /var/www/html
