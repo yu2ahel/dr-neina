@@ -1,45 +1,39 @@
-# Use the official PHP 8.2 image as the base image
+# Stage 1: Build the Laravel application and install Composer dependencies
+FROM composer:2 AS builder
+
+WORKDIR /app
+
+# Copy the composer files
+COPY composer.json composer.lock ./
+
+# Install composer dependencies
+RUN composer install --ignore-platform-reqs --no-scripts --no-autoloader
+
+# Copy the rest of the application files
+COPY . .
+
+# Generate the composer autoload files and optimize
+RUN composer dump-autoload --optimize
+
+# Build the Laravel application
+RUN php artisan optimize:clear
+RUN php artisan config:cache
+RUN php artisan route:cache
+
+# Stage 2: Set up the final image with Apache, PHP, Node.js, and npm
 FROM php:8.2-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    nano \
     libzip-dev \
-    zip \
     unzip \
-    && docker-php-ext-install pdo_mysql zip
+    curl
 
-# Enable Apache rewrite module
+# Enable required Apache modules
 RUN a2enmod rewrite
 
-# Set the working directory in the container
-WORKDIR /var/www/html
-
-# Copy the composer.lock and composer.json files to install dependencies separately
-COPY composer.lock composer.json ./
-
-# Install composer dependencies
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer install --no-scripts --no-autoloader
-
-# Copy the rest of the application code
-COPY . .
-
-# Set permissions for Laravel storage and bootstrap cache folders
-RUN chown -R www-data:www-data storage bootstrap/cache
-RUN chmod -R 775 storage bootstrap/cache
-
-# Generate the optimized autoload files
-RUN composer dump-autoload --optimize
-
-# Set up the Apache virtual host configuration
-COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
-
-# Enable PHP error logging
-RUN mkdir -p /usr/local/etc/php/conf.d \
-    && echo "log_errors = On" >> /usr/local/etc/php/conf.d/docker-php-error-log.ini \
-    && echo "error_log = /dev/stderr" >> /usr/local/etc/php/conf.d/docker-php-error-log.ini
-
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql zip
 
 # Install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
@@ -47,13 +41,23 @@ RUN apt-get install -y nodejs
 
 # Install frontend dependencies using npm
 WORKDIR /var/www/html
+COPY package*.json ./
 RUN npm install
 
 # Generate the optimized frontend assets
 RUN npm run production
 
-# Create a volume for the Laravel app directory
-VOLUME /var/www/html
+# Copy the Laravel application from the builder stage
+COPY --from=builder /app /var/www/html
+
+# Set the proper ownership and permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Set up the Apache virtual host
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
+
+# Enable Apache site
+RUN a2ensite 000-default
 
 # Expose port 80
 EXPOSE 80
