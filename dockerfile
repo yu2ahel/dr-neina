@@ -37,7 +37,7 @@ RUN docker-php-ext-install pdo_mysql zip
 
 # Install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get install -y nodejs
+RUN apt-get install -y nodejs npm
 
 # Install frontend dependencies using npm
 WORKDIR /var/www/html
