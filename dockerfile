@@ -51,7 +51,8 @@ RUN npm install
 COPY --from=builder /app /var/www/html
 
 # Set the proper ownership and permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+#RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Set up the Apache virtual host
 COPY docker/apache/000-default.conf  /etc/apache2/sites-available/000-default.conf
