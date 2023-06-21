@@ -54,7 +54,7 @@ COPY --from=builder /app /var/www/html
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Set up the Apache virtual host
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
+COPY docker/apache/000-default.conf  /etc/apache2/sites-available/000-default.conf
 
 # Enable Apache site
 RUN a2ensite 000-default
