@@ -40,6 +40,21 @@ RUN mkdir -p /usr/local/etc/php/conf.d \
     && echo "log_errors = On" >> /usr/local/etc/php/conf.d/docker-php-error-log.ini \
     && echo "error_log = /dev/stderr" >> /usr/local/etc/php/conf.d/docker-php-error-log.ini
 
+
+# Install Node.js and npm
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs
+
+# Install frontend dependencies using npm
+WORKDIR /var/www/html
+RUN npm install
+
+# Generate the optimized frontend assets
+RUN npm run production
+
+# Create a volume for the Laravel app directory
+VOLUME /var/www/html
+
 # Expose port 80
 EXPOSE 80
 
