@@ -3,7 +3,9 @@ FROM php:8.2-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    nano \
     libzip-dev \
+    zip \
     unzip \
     && docker-php-ext-install pdo_mysql zip
 
